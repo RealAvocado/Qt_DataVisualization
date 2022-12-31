@@ -29,13 +29,13 @@ public:
     DataProcessApp(QWidget *parent = nullptr);
     ~DataProcessApp();
 
-    bool isFileFormatValid(QStringList file_content_list);
+    bool isFileFormatValid(QStringList &file_content_list);
 
-    bool areDomainsIdentical(QVector<QVector<double> > dataset_domains_vec);
+    bool areDomainsIdentical(QVector<QVector<double> > &dataset_domains_vec);
 
     void setSelected_datasets_list(QList<QListWidgetItem*> *list_widget);
 
-    void addGraphFromFunction(QVector<QVector<double>> dataset_domains_vec, QVector<QVector<double>> dataset_y_values_vec);
+    void addGraphFromFunction(QVector<QVector<double> > &dataset_domains_vec, QVector<QVector<double> > &dataset_y_values_vec);
 
     void runFunctionDialog();
 

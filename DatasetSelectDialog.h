@@ -19,6 +19,7 @@ public:
     void clearFilesInList();
     QList<QListWidgetItem*>* getSelected_datasets_list();
     bool getIsDialogAccepted();
+    void closeEvent(QCloseEvent *e);
 
 private slots:
     void on_buttonBox_accepted();

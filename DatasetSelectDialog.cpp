@@ -49,3 +49,7 @@ void DatasetSelectDialog::on_buttonBox_rejected()
     *(this->is_dialog_accepted)=false;
 }
 
+void DatasetSelectDialog::closeEvent(QCloseEvent *e)
+{
+    *(this->is_dialog_accepted)=false;
+}

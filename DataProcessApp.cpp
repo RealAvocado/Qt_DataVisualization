@@ -26,7 +26,7 @@ DataProcessApp::~DataProcessApp()
     delete functionDialog;
 }
 
-bool DataProcessApp::isFileFormatValid(QStringList file_content_list)
+bool DataProcessApp::isFileFormatValid(QStringList &file_content_list)
 {
     bool is_format_valid = true;
     QRegularExpression re("\s*(([+-]?[1-9]\d*\.?\d*)|([+-]?0\.\d*))\s*,\s*(([+-]?[1-9]\d*\.?\d*)|([+-]?0\.\d*))\s*");
@@ -41,10 +41,10 @@ bool DataProcessApp::isFileFormatValid(QStringList file_content_list)
     return is_format_valid;
 }
 
-/* check whether the domains of selected datasets to draw a new function graph are identical
+/* check whether the domains of datasets selected to draw a new function graph are identical
  * if not identical, the function written by the user can't be applied on these datasets
 */
-bool DataProcessApp::areDomainsIdentical(QVector<QVector<double>> dataset_domains_vec)
+bool DataProcessApp::areDomainsIdentical(QVector<QVector<double>> &dataset_domains_vec)
 {
     QVector<double> current_domain_vec;
     QVector<double> previous_domain_vec;
@@ -81,7 +81,7 @@ void DataProcessApp::setSelected_datasets_list(QList<QListWidgetItem*> *list_wid
 /* add data to a new graph according to the function written by the user
  * ready for plot
 */
-void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > dataset_domains_vec, QVector<QVector<double> > dataset_y_values_vec)
+void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > &dataset_domains_vec, QVector<QVector<double> > &dataset_y_values_vec)
 {
     runFunctionDialog();
     if(ui->customPlot->graphCount()>this->selected_datasets_list->size()){
@@ -127,7 +127,7 @@ void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > dataset_doma
             }
             ui->customPlot->addGraph();
             ui->customPlot->graph(this->selected_datasets_list->size())->setData(dataset_domains_vec.at(0),new_y_value_vec);
-            ui->customPlot->graph(this->selected_datasets_list->size())->rescaleAxes(true);
+            ui->customPlot->rescaleAxes();
         }else{
             this->exceptionDialog->setDialogMessage("Function failed! Please ensure the domain of datasets are identical.");
             this->exceptionDialog->exec();
