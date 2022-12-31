@@ -28,18 +28,36 @@ DataProcessApp::~DataProcessApp()
 
 bool DataProcessApp::isFileFormatValid(QStringList &file_content_list)
 {
-    bool is_format_valid = true;
     QRegularExpression re("\s*(([+-]?[1-9]\d*\.?\d*)|([+-]?0\.\d*))\s*,\s*(([+-]?[1-9]\d*\.?\d*)|([+-]?0\.\d*))\s*");
     //QRegularExpression re("([+-]?\d+\.?\d+)\s*,\s*([+-]?\d+\.?\d+)");
     QRegularExpressionMatch match;
     foreach (QString point_str, file_content_list) {
         match=re.match(point_str);
         if(!match.hasMatch()){
-            is_format_valid=false;
+            return false;
         }
     }
-    return is_format_valid;
+    return true;
 }
+
+//if regex is valid, then check if there are multiple y values mapped to a same x coordinate value, which is not allowed.
+bool DataProcessApp::isEveryXValueUnique(QVector<Point> &point_vec)
+{
+    Point current_point;
+    Point previous_point;
+    for (int i = 0; i < point_vec.size(); ++i) {
+        current_point = point_vec.at(i);
+        if(i>0){
+            if(current_point.x==previous_point.x){
+                return false;
+            }
+        }
+        //traverse
+        previous_point=current_point;
+    }
+    return true;
+}
+
 
 /* check whether the domains of datasets selected to draw a new function graph are identical
  * if not identical, the function written by the user can't be applied on these datasets
@@ -50,8 +68,6 @@ bool DataProcessApp::areDomainsIdentical(QVector<QVector<double>> &dataset_domai
     QVector<double> previous_domain_vec;
     for (int i = 0; i < dataset_domains_vec.size(); ++i) {
         current_domain_vec=dataset_domains_vec.at(i);
-        std::sort(current_domain_vec.begin(),current_domain_vec.end());
-        std::sort(previous_domain_vec.begin(),previous_domain_vec.end());
         if(i>0){
             if(current_domain_vec.size()!=previous_domain_vec.size()){//compare size first
                 return false;
@@ -60,11 +76,7 @@ bool DataProcessApp::areDomainsIdentical(QVector<QVector<double>> &dataset_domai
                 return false;
             }
         }
-        if(i<dataset_domains_vec.size()-1){
-            //traverse
-            previous_domain_vec=current_domain_vec;
-            current_domain_vec=dataset_domains_vec.at(i+1);
-        }
+        previous_domain_vec=current_domain_vec;
     }
     return true;
 }
@@ -126,13 +138,14 @@ void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > &dataset_dom
                 }
             }
             ui->customPlot->addGraph();
-            ui->customPlot->graph(this->selected_datasets_list->size())->setData(dataset_domains_vec.at(0),new_y_value_vec);
-            ui->customPlot->rescaleAxes();
+            ui->customPlot->graph(this->selected_datasets_list->size())->setName(this->functionDialog->getSelectedFunction());
+            ui->customPlot->graph(this->selected_datasets_list->size())->setData(dataset_domains_vec.at(0),new_y_value_vec);    
         }else{
             this->exceptionDialog->setDialogMessage("Function failed! Please ensure the domain of datasets are identical.");
             this->exceptionDialog->exec();
         }
     }
+    ui->customPlot->rescaleAxes();
     ui->customPlot->replot();
 }
 
@@ -186,10 +199,10 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
         QStringList point_list=read_text.split("\r\n");
         QVector<Point> point_vec;
 
-        if(!isFileFormatValid(point_list)){ //record invalid files
+        if(!isFileFormatValid(point_list)){ //record invalid files which not conform to x.xx... , x.xx...
             is_file_valid=false;
             this->invalid_file_name_list->append(fileNames.at(i));
-        }else{ //if the file is valid, process it as normal
+        }else{ //if the file format is valid, process it further
             foreach (QString point_str, point_list) { //store the points in the dataset into vector
                 QStringList point_coordinate_pair=point_str.split(",");
                 Point* point = new Point(point_coordinate_pair.at(0).toDouble(),point_coordinate_pair.at(1).toDouble());
@@ -198,20 +211,28 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
                 point=nullptr;
             }
 
-            this->file_name_list->append(fileNames.at(i)); //store the filename selected by the user
-            this->fileName_dataset_map->insert(fileNames.at(i),point_vec); //map the file name with the datasets
-            this->selectDialog->setFilesInList(*(this->file_name_list)); //list the loaded datasets for users to select in a new dialog
+            std::sort(point_vec.begin(),point_vec.end(),Point::sortByXCoordinate);//sort points by x coordinate value
+
+            if(!isEveryXValueUnique(point_vec)){ //although format is valid, we need to check again the value in x coordinate
+                is_file_valid=false;
+                this->invalid_file_name_list->append(fileNames.at(i));
+            }else{
+                this->file_name_list->append(fileNames.at(i)); //store the filename selected by the user
+                this->fileName_dataset_map->insert(fileNames.at(i),point_vec); //map the file name with the datasets
+            }
         }
         loadFile.close();
     }
 
+    this->selectDialog->setFilesInList(*(this->file_name_list)); //list the loaded datasets for users to select in a new dialog
+
     //display error dialog to users if there are invalid files
     if(!is_file_valid){
-        QString error_dlg_label="The file format of:\r\n";
+        QString error_dlg_label="The file format of:\r\n\r\n";
         foreach (QString invalid_file_name, *(this->invalid_file_name_list)) {
-            error_dlg_label.append(invalid_file_name).append(",\r\n");
+            error_dlg_label.append(invalid_file_name).append(",\r\n\r\n");
         }
-        error_dlg_label.append("are incorrect!");
+        error_dlg_label.append("are incorrect!").append("\r\n\r\nPossible reasons are the format of some rows are not in 'x.xx...,x.xx...' format, or there are multiple values mapped to a same x ccordinate value.");
         this->exceptionDialog->setDialogMessage(error_dlg_label);
         this->exceptionDialog->exec();
     }
@@ -244,13 +265,11 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
             dataset_y_values_vec.push_back(coordinate_y_vec); //record the value field of definition of each dataset
 
             ui->customPlot->addGraph();
+            ui->customPlot->graph(i)->setName("Data "+QString::number(i+1));
             ui->customPlot->graph(i)->setData(coordinate_x_vec,coordinate_y_vec);
-            if(i==0){
-                ui->customPlot->graph(i)->rescaleAxes(); // let the ranges scale themselves so graph fits perfectly in the visible area:
-            }else{
-                ui->customPlot->graph(i)->rescaleAxes(true);
-            }
         }
+        ui->customPlot->rescaleAxes();
+
         *(this->dataset_domains_vec_attr)=dataset_domains_vec;
         *(this->dataset_y_values_vec_attr)=dataset_y_values_vec;
 
