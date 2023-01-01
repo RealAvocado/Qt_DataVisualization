@@ -10,6 +10,8 @@ DataProcessApp::DataProcessApp(QWidget *parent)
     ui->customPlot->legend->setVisible(true);
     ui->customPlot->xAxis->setLabel("x");
     ui->customPlot->yAxis->setLabel("y");
+    ui->customPlot->setInteraction(QCP::iSelectPlottables, true);
+    ui->customPlot->setInteraction(QCP::iMultiSelect);
 }
 
 DataProcessApp::~DataProcessApp()
@@ -40,7 +42,8 @@ bool DataProcessApp::isFileFormatValid(QStringList &file_content_list)
     return true;
 }
 
-//if regex is valid, then check if there are multiple y values mapped to a same x coordinate value, which is not allowed.
+/*if regex is valid, then check if there are multiple y values mapped to a same x coordinate value, which is not allowed.
+*/
 bool DataProcessApp::isEveryXValueUnique(QVector<Point> &point_vec)
 {
     Point current_point;
@@ -96,13 +99,9 @@ void DataProcessApp::setSelected_datasets_list(QList<QListWidgetItem*> *list_wid
 void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > &dataset_domains_vec, QVector<QVector<double> > &dataset_y_values_vec)
 {
     runFunctionDialog();
-    if(ui->customPlot->graphCount()>this->selected_datasets_list->size()){
-        ui->customPlot->removeGraph(this->selected_datasets_list->size()); //clear the graph drawn by the previous written function
-    }
-
-    //assign the data of the new graph according to the function written by the user
-    QVector<double> new_y_value_vec;
-    if(!(this->functionDialog->getSelectedFunction().isEmpty())){
+    if(this->functionDialog->getIsDialogAccepted()&&!(this->functionDialog->getSelectedFunction().isEmpty())){
+        //assign the data of the new graph according to the function written by the user
+        QVector<double> new_y_value_vec;
         if(areDomainsIdentical(dataset_domains_vec)){
             if(this->functionDialog->getSelectedFunction()=="product"){
                 for (int i = 0; i < dataset_y_values_vec.at(0).size(); ++i) {
@@ -137,16 +136,22 @@ void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > &dataset_dom
                     new_y_value_vec.push_back(new_y_value);
                 }
             }
+
+            if(ui->customPlot->graphCount()>this->selected_datasets_list->size()){
+                ui->customPlot->removeGraph(this->selected_datasets_list->size()); //clear the graph drawn by the previous written function
+            }
+
             ui->customPlot->addGraph();
             ui->customPlot->graph(this->selected_datasets_list->size())->setName(this->functionDialog->getSelectedFunction());
-            ui->customPlot->graph(this->selected_datasets_list->size())->setData(dataset_domains_vec.at(0),new_y_value_vec);    
+            ui->customPlot->graph(this->selected_datasets_list->size())->setData(dataset_domains_vec.at(0),new_y_value_vec);
+            ui->customPlot->graph(this->selected_datasets_list->size())->setPen(QPen(Qt::red));
+            ui->customPlot->rescaleAxes();
+            ui->customPlot->replot();
         }else{
             this->exceptionDialog->setDialogMessage("Function failed! Please ensure the domain of datasets are identical.");
             this->exceptionDialog->exec();
         }
     }
-    ui->customPlot->rescaleAxes();
-    ui->customPlot->replot();
 }
 
 void DataProcessApp::runFunctionDialog()
@@ -269,6 +274,7 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
             ui->customPlot->graph(i)->setData(coordinate_x_vec,coordinate_y_vec);
         }
         ui->customPlot->rescaleAxes();
+        ui->customPlot->replot();
 
         *(this->dataset_domains_vec_attr)=dataset_domains_vec;
         *(this->dataset_y_values_vec_attr)=dataset_y_values_vec;
@@ -276,8 +282,6 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
         //let the user write the function for datasets and plot the new one
         if(this->selected_datasets_list->size()>1){
             addGraphFromFunction(dataset_domains_vec,dataset_y_values_vec); //includes replot();
-        }else{
-            ui->customPlot->replot();
         }
     }
 }

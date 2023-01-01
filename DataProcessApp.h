@@ -5,12 +5,15 @@
 #include <QFileDialog>
 #include <QTextStream>
 #include <QMainWindow>
+#include <QMenu>
 #include <QVector>
 #include <QDebug>
 #include <QListWidgetItem>
 #include <QMap>
 #include <QRegularExpression>
-#include <QtAlgorithms>
+#include <QPen>
+#include <qcustomplot.h>
+
 #include <math.h>
 #include "point.h"
 #include "DatasetSelectDialog.h"

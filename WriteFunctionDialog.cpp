@@ -14,6 +14,7 @@ WriteFunctionDialog::~WriteFunctionDialog()
     delete function_list;
     delete selected_func_str;
     delete exceptionDialog;
+    delete is_dialog_accepted;
 }
 
 void WriteFunctionDialog::setFunctionList(QStringList function_list)
@@ -58,6 +59,15 @@ void WriteFunctionDialog::remindUserToSelectDatasets()
     ui->lineEdit->setVisible(false);
 }
 
+void WriteFunctionDialog::closeEvent(QCloseEvent *e)
+{
+    *(this->is_dialog_accepted)=false;
+}
+
+bool WriteFunctionDialog::getIsDialogAccepted()
+{
+    return *(this->is_dialog_accepted);
+}
 
 void WriteFunctionDialog::on_buttonBox_accepted()
 {
@@ -71,5 +81,12 @@ void WriteFunctionDialog::on_buttonBox_accepted()
             *(this->selected_func_str)=user_written_func;
         }
     }
+    *(this->is_dialog_accepted)=true;
+}
+
+
+void WriteFunctionDialog::on_buttonBox_rejected()
+{
+    *(this->is_dialog_accepted)=false;
 }
 

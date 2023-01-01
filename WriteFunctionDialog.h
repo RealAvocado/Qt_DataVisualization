@@ -22,15 +22,20 @@ public:
     void setUserHint(QStringList function_list, int selected_dataset_num);
     QString getSelectedFunction();
     void remindUserToSelectDatasets();
+    void closeEvent(QCloseEvent *e);
+    bool getIsDialogAccepted();
 
 private slots:
     void on_buttonBox_accepted();
+
+    void on_buttonBox_rejected();
 
 private:
     Ui::WriteFunctionDialog *ui;
     QStringList* function_list = new QStringList;
     QString* selected_func_str = new QString;
     ExceptionDialog *exceptionDialog = new ExceptionDialog();
+    bool *is_dialog_accepted = new bool;
 };
 
 #endif // WRITEFUNCTIONDIALOG_H
