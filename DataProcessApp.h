@@ -44,13 +44,26 @@ public:
 
     void runFunctionDialog();
 
+    void runColorDialog();
 
-private slots:
+    void constructContextMenu();
+
+private slots:    
     void on_actionLoad_Datasets_triggered();
 
     void on_actionSelect_Datasets_to_Plot_triggered();
 
     void on_actionWrite_Function_for_Plots_triggered();
+
+    // slots used to change colors
+
+    void graphDoubleClicked(QCPAbstractPlottable*);
+
+    void legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem *item);
+
+    void plotContextMenuRequest(QPoint point);
+
+    void on_actionChange_Graph_Color_triggered();
 
 private:
     Ui::DataProcessApp *ui;
@@ -66,6 +79,8 @@ private:
     QStringList *invalid_file_name_list = new QStringList;
     ExceptionDialog *exceptionDialog = new ExceptionDialog();
     WriteFunctionDialog *functionDialog = new WriteFunctionDialog();
+
+    QMenu *contextMenu=new QMenu();
 
 };
 #endif // DATAPROCESSAPP_H

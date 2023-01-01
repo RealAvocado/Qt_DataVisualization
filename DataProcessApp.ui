@@ -41,6 +41,7 @@
     <addaction name="actionLoad_Datasets"/>
     <addaction name="actionSelect_Datasets_to_Plot"/>
     <addaction name="actionWrite_Function_for_Plots"/>
+    <addaction name="actionChange_Graph_Color"/>
    </widget>
    <addaction name="menuLoad"/>
   </widget>
@@ -58,6 +59,7 @@
    <addaction name="actionLoad_Datasets"/>
    <addaction name="actionSelect_Datasets_to_Plot"/>
    <addaction name="actionWrite_Function_for_Plots"/>
+   <addaction name="actionChange_Graph_Color"/>
   </widget>
   <action name="actionLoad_Datasets">
    <property name="text">
@@ -75,6 +77,11 @@
   <action name="actionWrite_Function_for_Plots">
    <property name="text">
     <string>Write Function for Plots</string>
+   </property>
+  </action>
+  <action name="actionChange_Graph_Color">
+   <property name="text">
+    <string>Change Graph Color</string>
    </property>
   </action>
  </widget>

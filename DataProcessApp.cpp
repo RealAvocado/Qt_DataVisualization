@@ -7,11 +7,18 @@ DataProcessApp::DataProcessApp(QWidget *parent)
 {
     ui->setupUi(this);
     setCentralWidget(ui->customPlot);
+    constructContextMenu();
+
     ui->customPlot->legend->setVisible(true);
     ui->customPlot->xAxis->setLabel("x");
     ui->customPlot->yAxis->setLabel("y");
     ui->customPlot->setInteraction(QCP::iSelectPlottables, true);
     ui->customPlot->setInteraction(QCP::iMultiSelect);
+
+    connect(ui->customPlot, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphDoubleClicked(QCPAbstractPlottable*)));
+    connect(ui->customPlot, SIGNAL(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*,QMouseEvent*)), this, SLOT(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*)));
+    connect(ui->customPlot, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(plotContextMenuRequest(QPoint)));
+
 }
 
 DataProcessApp::~DataProcessApp()
@@ -26,6 +33,7 @@ DataProcessApp::~DataProcessApp()
     delete invalid_file_name_list;
     delete exceptionDialog;
     delete functionDialog;
+    delete contextMenu;
 }
 
 bool DataProcessApp::isFileFormatValid(QStringList &file_content_list)
@@ -177,6 +185,25 @@ void DataProcessApp::runFunctionDialog()
     this->functionDialog->exec();
 }
 
+void DataProcessApp::runColorDialog()
+{
+    QColor color = QColorDialog::getColor();
+    if(color.isValid()){
+        foreach (QCPGraph* graph, ui->customPlot->selectedGraphs()) {
+            graph->setPen(QPen(color));
+        }
+    }
+    ui->customPlot->replot();
+}
+
+void DataProcessApp::constructContextMenu()
+{
+    this->contextMenu->addAction(ui->actionChange_Graph_Color);
+}
+
+/*================================================================================================================================*/
+/*================================================================================================================================*/
+
 void DataProcessApp::on_actionLoad_Datasets_triggered()
 {
     //preparation for loading datasets
@@ -290,5 +317,48 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
 void DataProcessApp::on_actionWrite_Function_for_Plots_triggered()
 {
     addGraphFromFunction(*(this->dataset_domains_vec_attr),*(this->dataset_y_values_vec_attr));
+}
+
+/*================================================================================================================================*/
+/*================================================================================================================================*/
+
+/*
+ * change color by double clicking the graph
+*/
+void DataProcessApp::graphDoubleClicked(QCPAbstractPlottable*)
+{
+    runColorDialog();
+//    qDebug()<<"double clicked";
+//    qDebug()<<ui->customPlot->selectedGraphs().size();
+}
+
+/*
+ * change name of datasets by double clicking the legend
+*/
+void DataProcessApp::legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem *item)
+{
+      Q_UNUSED(legend)
+      if (item) // only react if item was clicked (user could have clicked on border padding of legend where there is no item, then item is 0)
+      {
+        QCPPlottableLegendItem *plItem = qobject_cast<QCPPlottableLegendItem*>(item);
+        bool ok;
+        QString newName = QInputDialog::getText(this, "Edit", "New graph name:", QLineEdit::Normal, plItem->plottable()->name(), &ok);
+        if (ok)
+        {
+          plItem->plottable()->setName(newName);
+          ui->customPlot->replot();
+        }
+      }
+}
+
+void DataProcessApp::plotContextMenuRequest(QPoint point)
+{
+    contextMenu->setAttribute(Qt::WA_DeleteOnClose);
+    this->contextMenu->popup(ui->customPlot->mapToGlobal(point));
+}
+
+void DataProcessApp::on_actionChange_Graph_Color_triggered()
+{
+    runColorDialog();
 }
 
