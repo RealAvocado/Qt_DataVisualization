@@ -14,6 +14,7 @@ DataProcessApp::DataProcessApp(QWidget *parent)
     ui->customPlot->yAxis->setLabel("y");
     ui->customPlot->setInteraction(QCP::iSelectPlottables, true);
     ui->customPlot->setInteraction(QCP::iMultiSelect);
+    ui->customPlot->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(ui->customPlot, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphDoubleClicked(QCPAbstractPlottable*)));
     connect(ui->customPlot, SIGNAL(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*,QMouseEvent*)), this, SLOT(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*)));
@@ -351,10 +352,9 @@ void DataProcessApp::legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem 
       }
 }
 
-void DataProcessApp::plotContextMenuRequest(QPoint point)
+void DataProcessApp::plotContextMenuRequest(QPoint pos)
 {
-    contextMenu->setAttribute(Qt::WA_DeleteOnClose);
-    this->contextMenu->popup(ui->customPlot->mapToGlobal(point));
+    this->contextMenu->popup(ui->customPlot->mapToGlobal(pos));
 }
 
 void DataProcessApp::on_actionChange_Graph_Color_triggered()

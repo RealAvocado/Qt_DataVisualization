@@ -61,7 +61,7 @@ private slots:
 
     void legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem *item);
 
-    void plotContextMenuRequest(QPoint point);
+    void plotContextMenuRequest(QPoint pos);
 
     void on_actionChange_Graph_Color_triggered();
 
