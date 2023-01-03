@@ -6,14 +6,17 @@ ExceptionDialog::ExceptionDialog(QWidget *parent) :
     ui(new Ui::ExceptionDialog)
 {
     ui->setupUi(this);
-}
-
-void ExceptionDialog::setDialogMessage(QString content)
-{
-    ui->textBrowser->setText(content);
+    this->setSizeGripEnabled(true);
+    this->setWindowIcon(QIcon(":/error.png"));
+    update();
 }
 
 ExceptionDialog::~ExceptionDialog()
 {
     delete ui;
+}
+
+void ExceptionDialog::setDialogMessage(QString content)
+{
+    ui->textBrowser->setText(content);
 }

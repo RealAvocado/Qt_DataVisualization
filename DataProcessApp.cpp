@@ -12,13 +12,19 @@ DataProcessApp::DataProcessApp(QWidget *parent)
     ui->customPlot->legend->setVisible(true);
     ui->customPlot->xAxis->setLabel("x");
     ui->customPlot->yAxis->setLabel("y");
-    ui->customPlot->setInteraction(QCP::iSelectPlottables, true);
-    ui->customPlot->setInteraction(QCP::iMultiSelect);
+    ui->customPlot->setInteractions(QCP::iSelectPlottables | QCP::iMultiSelect | QCP::iRangeZoom | QCP::iRangeDrag | QCP::iSelectAxes);
     ui->customPlot->setContextMenuPolicy(Qt::CustomContextMenu);
 
+    //connect slots that are used to change colors
     connect(ui->customPlot, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphDoubleClicked(QCPAbstractPlottable*)));
-    connect(ui->customPlot, SIGNAL(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*,QMouseEvent*)), this, SLOT(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*)));
     connect(ui->customPlot, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(plotContextMenuRequest(QPoint)));
+
+    //connect slot that are used to change graph legend names
+    connect(ui->customPlot, SIGNAL(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*,QMouseEvent*)), this, SLOT(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*)));
+
+    //connect slots that are used to manipulate the screen zooming and draging
+    connect(ui->customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(zoomGraphByWheel()));
+    connect(ui->customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(dragScreenByPress()));
 
 }
 
@@ -202,13 +208,15 @@ void DataProcessApp::constructContextMenu()
     this->contextMenu->addAction(ui->actionChange_Graph_Color);
 }
 
-/*================================================================================================================================*/
-/*================================================================================================================================*/
+
+
+/*=====================================================SLOTS======================================================================*/
+
 
 void DataProcessApp::on_actionLoad_Datasets_triggered()
 {
     //preparation for loading datasets
-    bool is_file_valid = true;
+    bool are_all_files_valid = true;
 
     QStringList fileNames=QFileDialog::getOpenFileNames(this,"Load a file"); // Asking the user what file they want to load and where it is stored
 
@@ -233,7 +241,7 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
         QVector<Point> point_vec;
 
         if(!isFileFormatValid(point_list)){ //record invalid files which not conform to x.xx... , x.xx...
-            is_file_valid=false;
+            are_all_files_valid=false;
             this->invalid_file_name_list->append(fileNames.at(i));
         }else{ //if the file format is valid, process it further
             foreach (QString point_str, point_list) { //store the points in the dataset into vector
@@ -247,7 +255,7 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
             std::sort(point_vec.begin(),point_vec.end(),Point::sortByXCoordinate);//sort points by x coordinate value
 
             if(!isEveryXValueUnique(point_vec)){ //although format is valid, we need to check again the value in x coordinate
-                is_file_valid=false;
+                are_all_files_valid=false;
                 this->invalid_file_name_list->append(fileNames.at(i));
             }else{
                 this->file_name_list->append(fileNames.at(i)); //store the filename selected by the user
@@ -260,14 +268,26 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
     this->selectDialog->setFilesInList(*(this->file_name_list)); //list the loaded datasets for users to select in a new dialog
 
     //display error dialog to users if there are invalid files
-    if(!is_file_valid){
-        QString error_dlg_label="The file format of:\r\n\r\n";
+    if(!are_all_files_valid){
+        QString error_message="The file format of the following file(s) are incorrcect!:\n\n";
         foreach (QString invalid_file_name, *(this->invalid_file_name_list)) {
-            error_dlg_label.append(invalid_file_name).append(",\r\n\r\n");
+            error_message.append(invalid_file_name).append(",\n\n");
         }
-        error_dlg_label.append("are incorrect!").append("\r\n\r\nPossible reasons are the format of some rows are not in 'x.xx...,x.xx...' format, or there are multiple values mapped to a same x ccordinate value.");
-        this->exceptionDialog->setDialogMessage(error_dlg_label);
+        error_message.append("\n\nPossible reasons are the format of some rows are not in 'x.xx...,x.xx...' format, or there are multiple values mapped to a same x ccordinate value.");
+        this->exceptionDialog->setDialogMessage(error_message);
         this->exceptionDialog->exec();
+    }
+
+    if(!this->file_name_list->isEmpty()){
+        QMessageBox msgBox;
+        if(!are_all_files_valid){
+            msgBox.setText("The other valid datasets you selected has been loaded and you can select them in the tool bar now.");
+            msgBox.exec();
+        }else{
+            msgBox.setText("All datasets you selected has been loaded successfully and you can select them in the tool bar now.");
+            msgBox.exec();
+        }
+
     }
 }
 
@@ -320,17 +340,12 @@ void DataProcessApp::on_actionWrite_Function_for_Plots_triggered()
     addGraphFromFunction(*(this->dataset_domains_vec_attr),*(this->dataset_y_values_vec_attr));
 }
 
-/*================================================================================================================================*/
-/*================================================================================================================================*/
-
 /*
  * change color by double clicking the graph
 */
 void DataProcessApp::graphDoubleClicked(QCPAbstractPlottable*)
 {
     runColorDialog();
-//    qDebug()<<"double clicked";
-//    qDebug()<<ui->customPlot->selectedGraphs().size();
 }
 
 /*
@@ -360,5 +375,29 @@ void DataProcessApp::plotContextMenuRequest(QPoint pos)
 void DataProcessApp::on_actionChange_Graph_Color_triggered()
 {
     runColorDialog();
+}
+
+void DataProcessApp::zoomGraphByWheel()
+{
+    // if an axis is selected, only allow the direction of that axis to be zoomed
+    // if no axis is selected, both directions may be zoomed
+    if (ui->customPlot->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
+        ui->customPlot->axisRect()->setRangeZoom(ui->customPlot->xAxis->orientation());
+      else if (ui->customPlot->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
+        ui->customPlot->axisRect()->setRangeZoom(ui->customPlot->yAxis->orientation());
+      else
+        ui->customPlot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
+}
+
+void DataProcessApp::dragScreenByPress()
+{
+      // if an axis is selected, only allow the direction of that axis to be dragged
+      // if no axis is selected, both directions may be dragged
+      if (ui->customPlot->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
+        ui->customPlot->axisRect()->setRangeDrag(ui->customPlot->xAxis->orientation());
+      else if (ui->customPlot->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
+        ui->customPlot->axisRect()->setRangeDrag(ui->customPlot->yAxis->orientation());
+      else
+        ui->customPlot->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
 }
 

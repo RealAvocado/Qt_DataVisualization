@@ -48,7 +48,9 @@ public:
 
     void constructContextMenu();
 
-private slots:    
+private slots:
+    // slots used to load and plot graphs
+
     void on_actionLoad_Datasets_triggered();
 
     void on_actionSelect_Datasets_to_Plot_triggered();
@@ -64,6 +66,10 @@ private slots:
     void plotContextMenuRequest(QPoint pos);
 
     void on_actionChange_Graph_Color_triggered();
+
+    void zoomGraphByWheel();
+
+    void dragScreenByPress();
 
 private:
     Ui::DataProcessApp *ui;

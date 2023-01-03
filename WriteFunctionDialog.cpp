@@ -6,6 +6,7 @@ WriteFunctionDialog::WriteFunctionDialog(QWidget *parent) :
     ui(new Ui::WriteFunctionDialog)
 {
     ui->setupUi(this);
+    this->setSizeGripEnabled(true);
 }
 
 WriteFunctionDialog::~WriteFunctionDialog()

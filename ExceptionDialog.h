@@ -2,6 +2,9 @@
 #define EXCEPTIONDIALOG_H
 
 #include <QDialog>
+#include <QPixmap>
+#include <QPainter>
+#include <QPaintEvent>
 
 namespace Ui {
 class ExceptionDialog;
