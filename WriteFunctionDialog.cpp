@@ -24,20 +24,14 @@ void WriteFunctionDialog::setFunctionList(QStringList function_list)
     this->selected_func_str->clear();
 }
 
-void WriteFunctionDialog::clearFunctionList()
-{
-    this->function_list->clear();
-    this->selected_func_str->clear();
-}
-
-void WriteFunctionDialog::clearLineEdit()
+void WriteFunctionDialog::reset()
 {
     ui->lineEdit->clear();
+    this->selected_func_str->clear();
 }
 
 void WriteFunctionDialog::setUserHint(QStringList function_list, int selected_dataset_num)
 {
-    ui->lineEdit->setVisible(true);
     QString num = QString::number(selected_dataset_num);
     QString hint_message = "Available functions for " + num + " datasets you selected are:\r\n";
     int func_sequence = 1;
@@ -54,11 +48,6 @@ QString WriteFunctionDialog::getSelectedFunction()
     return *(this->selected_func_str);
 }
 
-void WriteFunctionDialog::remindUserToSelectDatasets()
-{
-    ui->label->setText("Please select more than one dataset first.");
-    ui->lineEdit->setVisible(false);
-}
 
 void WriteFunctionDialog::closeEvent(QCloseEvent *e)
 {

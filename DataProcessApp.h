@@ -40,7 +40,7 @@ public:
 
     void setSelected_datasets_list(QList<QListWidgetItem*> *list_widget);
 
-    void addGraphFromFunction(QVector<QVector<double> > &dataset_domains_vec, QVector<QVector<double> > &dataset_y_values_vec);
+    void addGraphFromFunction(QVector<QVector<double> > &dataset_key_domains_vec, QVector<QVector<double> > &dataset_value_domains_vec);
 
     void runFunctionDialog();
 
@@ -74,19 +74,19 @@ private slots:
 private:
     Ui::DataProcessApp *ui;
 
-    QStringList *file_name_list = new QStringList;
-    QMap<QString, QVector<Point>> *fileName_dataset_map = new QMap<QString, QVector<Point>>;
+    QStringList *file_name_list = new QStringList; //store the file name of loaded datasets
+    QMap<QString, QVector<Point>> *fileName_dataset_map = new QMap<QString, QVector<Point>>; //link the file name to datas one to one
 
-    DatasetSelectDialog *selectDialog = new DatasetSelectDialog();
-    QStringList *selected_datasets_list = new QStringList;
-    QVector<QVector<double>>* dataset_domains_vec_attr = new QVector<QVector<double>>;
-    QVector<QVector<double>>* dataset_y_values_vec_attr = new QVector<QVector<double>>;
+    DatasetSelectDialog *selectDialog = new DatasetSelectDialog(); //the dialog used to select loaded datasets
+    QStringList *selected_datasets_list = new QStringList; //record datasets selected by the user
+    QVector<QVector<double>>* dataset_key_domains_vec_attr = new QVector<QVector<double>>; //store the x domain value of all datasets
+    QVector<QVector<double>>* dataset_value_domains_vec_attr = new QVector<QVector<double>>; //store the y value of all datasets
 
-    QStringList *invalid_file_name_list = new QStringList;
-    ExceptionDialog *exceptionDialog = new ExceptionDialog();
-    WriteFunctionDialog *functionDialog = new WriteFunctionDialog();
+    QStringList *invalid_file_name_list = new QStringList; //record datasets that have invalid formats
+    ExceptionDialog *exceptionDialog = new ExceptionDialog(); //the dialog used to show error messages when exception occurs
+    WriteFunctionDialog *functionDialog = new WriteFunctionDialog(); //the dialog used to allow the user wo write functions
 
-    QMenu *contextMenu=new QMenu();
+    QMenu *contextMenu=new QMenu(); //used to display context menu
 
 };
 #endif // DATAPROCESSAPP_H

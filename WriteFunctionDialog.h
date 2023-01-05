@@ -17,11 +17,9 @@ public:
     ~WriteFunctionDialog();
 
     void setFunctionList(QStringList function_list);
-    void clearFunctionList();
-    void clearLineEdit();
+    void reset();
     void setUserHint(QStringList function_list, int selected_dataset_num);
     QString getSelectedFunction();
-    void remindUserToSelectDatasets();
     void closeEvent(QCloseEvent *e);
     bool getIsDialogAccepted();
 

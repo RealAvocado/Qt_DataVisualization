@@ -35,8 +35,8 @@ DataProcessApp::~DataProcessApp()
     delete fileName_dataset_map;
     delete selectDialog;
     delete selected_datasets_list;
-    delete dataset_domains_vec_attr;
-    delete dataset_y_values_vec_attr;
+    delete dataset_key_domains_vec_attr;
+    delete dataset_value_domains_vec_attr;
     delete invalid_file_name_list;
     delete exceptionDialog;
     delete functionDialog;
@@ -45,8 +45,7 @@ DataProcessApp::~DataProcessApp()
 
 bool DataProcessApp::isFileFormatValid(QStringList &file_content_list)
 {
-    QRegularExpression re("\s*(([+-]?[1-9]\d*\.?\d*)|([+-]?0\.\d*))\s*,\s*(([+-]?[1-9]\d*\.?\d*)|([+-]?0\.\d*))\s*");
-    //QRegularExpression re("([+-]?\d+\.?\d+)\s*,\s*([+-]?\d+\.?\d+)");
+    QRegularExpression re("^[+-]?[0-9]+(\.[0-9]+)?,[+-]?[0-9]+(\.[0-9]+)?$", QRegularExpression::UseUnicodePropertiesOption);
     QRegularExpressionMatch match;
     foreach (QString point_str, file_content_list) {
         match=re.match(point_str);
@@ -111,41 +110,41 @@ void DataProcessApp::setSelected_datasets_list(QList<QListWidgetItem*> *list_wid
 /* add data to a new graph according to the function written by the user
  * ready for plot
 */
-void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > &dataset_domains_vec, QVector<QVector<double> > &dataset_y_values_vec)
+void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > &dataset_key_domains_vec, QVector<QVector<double> > &dataset_value_domains_vec)
 {
     runFunctionDialog();
     if(this->functionDialog->getIsDialogAccepted()&&!(this->functionDialog->getSelectedFunction().isEmpty())){
         //assign the data of the new graph according to the function written by the user
         QVector<double> new_y_value_vec;
-        if(areDomainsIdentical(dataset_domains_vec)){
+        if(areDomainsIdentical(dataset_key_domains_vec)){
             if(this->functionDialog->getSelectedFunction()=="product"){
-                for (int i = 0; i < dataset_y_values_vec.at(0).size(); ++i) {
+                for (int i = 0; i < dataset_value_domains_vec.at(0).size(); ++i) {
                     double new_y_value=1;
-                    foreach (QVector<double> y_value_vec, dataset_y_values_vec) {
+                    foreach (QVector<double> y_value_vec, dataset_value_domains_vec) {
                         new_y_value=new_y_value*y_value_vec.at(i);
                     }
                     new_y_value_vec.push_back(new_y_value);
                 }
             }else if(this->functionDialog->getSelectedFunction()=="sum"){
-                for (int i = 0; i < dataset_y_values_vec.at(0).size(); ++i) {
+                for (int i = 0; i < dataset_value_domains_vec.at(0).size(); ++i) {
                     double new_y_value=0;
-                    foreach (QVector<double> y_value_vec, dataset_y_values_vec) {
+                    foreach (QVector<double> y_value_vec, dataset_value_domains_vec) {
                         new_y_value=new_y_value+y_value_vec.at(i);
                     }
                     new_y_value_vec.push_back(new_y_value);
                 }
             }else if(this->functionDialog->getSelectedFunction()=="square sum"){
-                for (int i = 0; i < dataset_y_values_vec.at(0).size(); ++i) {
+                for (int i = 0; i < dataset_value_domains_vec.at(0).size(); ++i) {
                     double new_y_value=0;
-                    foreach (QVector<double> y_value_vec, dataset_y_values_vec) {
+                    foreach (QVector<double> y_value_vec, dataset_value_domains_vec) {
                         new_y_value=new_y_value+std::pow(y_value_vec.at(i),2);
                     }
                     new_y_value_vec.push_back(new_y_value);
                 }
             }else if(this->functionDialog->getSelectedFunction()=="root sum"){
-                for (int i = 0; i < dataset_y_values_vec.at(0).size(); ++i) {
+                for (int i = 0; i < dataset_value_domains_vec.at(0).size(); ++i) {
                     double new_y_value=0;
-                    foreach (QVector<double> y_value_vec, dataset_y_values_vec) {
+                    foreach (QVector<double> y_value_vec, dataset_value_domains_vec) {
                         new_y_value=new_y_value+std::sqrt(y_value_vec.at(i));
                     }
                     new_y_value_vec.push_back(new_y_value);
@@ -158,7 +157,7 @@ void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > &dataset_dom
 
             ui->customPlot->addGraph();
             ui->customPlot->graph(this->selected_datasets_list->size())->setName(this->functionDialog->getSelectedFunction());
-            ui->customPlot->graph(this->selected_datasets_list->size())->setData(dataset_domains_vec.at(0),new_y_value_vec);
+            ui->customPlot->graph(this->selected_datasets_list->size())->setData(dataset_key_domains_vec.at(0),new_y_value_vec);
             ui->customPlot->graph(this->selected_datasets_list->size())->setPen(QPen(Qt::red));
             ui->customPlot->rescaleAxes();
             ui->customPlot->replot();
@@ -172,39 +171,45 @@ void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > &dataset_dom
 void DataProcessApp::runFunctionDialog()
 {
     QStringList available_func_for_user;
-    if(this->selected_datasets_list->size()==2){
-        available_func_for_user.append("product");
-        available_func_for_user.append("sum");
-    }else if(this->selected_datasets_list->size()>=3){
+    if(this->selected_datasets_list->size()>=2){
         available_func_for_user.append("product");
         available_func_for_user.append("sum");
         available_func_for_user.append("square sum");
         available_func_for_user.append("root sum");
-    }
-    if(this->selected_datasets_list->size()>=2){
         this->functionDialog->setFunctionList(available_func_for_user);
         this->functionDialog->setUserHint(available_func_for_user, this->selected_datasets_list->size());
-    }else{
-        this->functionDialog->clearFunctionList();
-        this->functionDialog->remindUserToSelectDatasets();
+        this->functionDialog->reset();
+        this->functionDialog->exec();
+    } else{
+        QMessageBox msgBox;
+        msgBox.setText("Please select more than one datasets.");
+        msgBox.exec();
+        this->functionDialog->reset();
     }
-    this->functionDialog->clearLineEdit();
-    this->functionDialog->exec();
 }
 
 void DataProcessApp::runColorDialog()
 {
-    QColor color = QColorDialog::getColor();
-    if(color.isValid()){
-        foreach (QCPGraph* graph, ui->customPlot->selectedGraphs()) {
-            graph->setPen(QPen(color));
+    if(ui->customPlot->selectedGraphs().isEmpty()){
+        QMessageBox msgBox;
+        msgBox.setText("No graphs have been selected yet. Please select graphs first.");
+        msgBox.exec();
+    } else{
+        QColor color = QColorDialog::getColor();
+        if(color.isValid()){
+            foreach (QCPGraph* graph, ui->customPlot->selectedGraphs()) {
+                graph->setPen(QPen(color));
+            }
         }
+        ui->customPlot->replot();
     }
-    ui->customPlot->replot();
 }
 
 void DataProcessApp::constructContextMenu()
 {
+    this->contextMenu->addAction(ui->actionLoad_Datasets);
+    this->contextMenu->addAction(ui->actionSelect_Datasets_to_Plot);
+    this->contextMenu->addAction(ui->actionWrite_Function_for_Plots);
     this->contextMenu->addAction(ui->actionChange_Graph_Color);
 }
 
@@ -246,10 +251,8 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
         }else{ //if the file format is valid, process it further
             foreach (QString point_str, point_list) { //store the points in the dataset into vector
                 QStringList point_coordinate_pair=point_str.split(",");
-                Point* point = new Point(point_coordinate_pair.at(0).toDouble(),point_coordinate_pair.at(1).toDouble());
-                point_vec.push_back(*point);
-                delete point;
-                point=nullptr;
+                Point point(point_coordinate_pair.at(0).toDouble(),point_coordinate_pair.at(1).toDouble());
+                point_vec.push_back(point);
             }
 
             std::sort(point_vec.begin(),point_vec.end(),Point::sortByXCoordinate);//sort points by x coordinate value
@@ -269,11 +272,12 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
 
     //display error dialog to users if there are invalid files
     if(!are_all_files_valid){
-        QString error_message="The file format of the following file(s) are incorrcect!:\n\n";
+        QString error_message="The file format of the following file(s) are incorrcect!\n\n";
         foreach (QString invalid_file_name, *(this->invalid_file_name_list)) {
             error_message.append(invalid_file_name).append(",\n\n");
         }
-        error_message.append("\n\nPossible reasons are the format of some rows are not in 'x.xx...,x.xx...' format, or there are multiple values mapped to a same x ccordinate value.");
+        error_message.append("Possible reasons are:\n1. The format of some rows are not in 'd.dd...(or d),d.dd...(or d)' format. The 'd' represents a digit and no space is allowed.\n2. There are multiple values mapped to a same x coordinate value.\n\n");
+        error_message.append("A correct example is shown below:\n1,2\n1.5,3.0\n3.0,6\n...");
         this->exceptionDialog->setDialogMessage(error_message);
         this->exceptionDialog->exec();
     }
@@ -302,20 +306,20 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
 
         this->setSelected_datasets_list(this->selectDialog->getSelected_datasets_list());
 
-        QVector<QVector<double>> dataset_domains_vec;
-        QVector<QVector<double>> dataset_y_values_vec;
+        QVector<QVector<double>> dataset_key_domains_vec;
+        QVector<QVector<double>> dataset_values_domains_vec;
 
         //plot selected datasets
         for (int i = 0; i < this->selected_datasets_list->size(); ++i) {
             QVector<Point> point_vec = this->fileName_dataset_map->value(this->selected_datasets_list->at(i));
-            QVector<double> coordinate_x_vec(point_vec.size());
-            QVector<double> coordinate_y_vec(point_vec.size());
+            QVector<double> coordinate_x_vec;
+            QVector<double> coordinate_y_vec;
             foreach (Point point, point_vec) {
                 coordinate_x_vec.push_back(point.x);
                 coordinate_y_vec.push_back(point.y);
             }
-            dataset_domains_vec.push_back(coordinate_x_vec); //record the domain of definition of each dataset
-            dataset_y_values_vec.push_back(coordinate_y_vec); //record the value field of definition of each dataset
+            dataset_key_domains_vec.push_back(coordinate_x_vec); //record the key domain of each dataset
+            dataset_values_domains_vec.push_back(coordinate_y_vec); //record the value domain of each dataset
 
             ui->customPlot->addGraph();
             ui->customPlot->graph(i)->setName("Data "+QString::number(i+1));
@@ -324,12 +328,12 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
         ui->customPlot->rescaleAxes();
         ui->customPlot->replot();
 
-        *(this->dataset_domains_vec_attr)=dataset_domains_vec;
-        *(this->dataset_y_values_vec_attr)=dataset_y_values_vec;
+        *(this->dataset_key_domains_vec_attr)=dataset_key_domains_vec;
+        *(this->dataset_value_domains_vec_attr)=dataset_values_domains_vec;
 
         //let the user write the function for datasets and plot the new one
         if(this->selected_datasets_list->size()>1){
-            addGraphFromFunction(dataset_domains_vec,dataset_y_values_vec); //includes replot();
+            addGraphFromFunction(dataset_key_domains_vec,dataset_values_domains_vec); //includes replot();
         }
     }
 }
@@ -337,7 +341,7 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
 
 void DataProcessApp::on_actionWrite_Function_for_Plots_triggered()
 {
-    addGraphFromFunction(*(this->dataset_domains_vec_attr),*(this->dataset_y_values_vec_attr));
+    addGraphFromFunction(*(this->dataset_key_domains_vec_attr),*(this->dataset_value_domains_vec_attr));
 }
 
 /*
