@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>error.png</file>
+        <file>file.png</file>
+        <file>plot.png</file>
+        <file>function.png</file>
+        <file>clean.png</file>
+        <file>painter.png</file>
+        <file>remove.png</file>
+        <file>eraser.png</file>
+        <file>DataVisualization.png</file>
+    </qresource>
+</RCC>

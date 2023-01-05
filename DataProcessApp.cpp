@@ -6,6 +6,7 @@ DataProcessApp::DataProcessApp(QWidget *parent)
     , ui(new Ui::DataProcessApp)
 {
     ui->setupUi(this);
+    this->setWindowIcon(QIcon(":/DataVisualization.png"));
     setCentralWidget(ui->customPlot);
     constructContextMenu();
 
@@ -35,12 +36,14 @@ DataProcessApp::~DataProcessApp()
     delete fileName_dataset_map;
     delete selectDialog;
     delete selected_datasets_list;
-    delete dataset_key_domains_vec_attr;
-    delete dataset_value_domains_vec_attr;
+    delete selected_dataset_key_domains_vec;
+    delete selected_dataset_value_domains_vec;
     delete invalid_file_name_list;
     delete exceptionDialog;
     delete functionDialog;
     delete contextMenu;
+    delete secondary_contextMenu;
+    delete graph_selectedMenu;
 }
 
 bool DataProcessApp::isFileFormatValid(QStringList &file_content_list)
@@ -182,7 +185,7 @@ void DataProcessApp::runFunctionDialog()
         this->functionDialog->exec();
     } else{
         QMessageBox msgBox;
-        msgBox.setText("Please select more than one datasets.");
+        msgBox.setText("Please plot more than one dataset.");
         msgBox.exec();
         this->functionDialog->reset();
     }
@@ -208,11 +211,47 @@ void DataProcessApp::runColorDialog()
 void DataProcessApp::constructContextMenu()
 {
     this->contextMenu->addAction(ui->actionLoad_Datasets);
+    ui->actionLoad_Datasets->setIcon(QIcon(":/file.png"));
+    this->contextMenu->addSeparator();
+
     this->contextMenu->addAction(ui->actionSelect_Datasets_to_Plot);
+    ui->actionSelect_Datasets_to_Plot->setIcon(QIcon(":/plot.png"));
+    this->contextMenu->addSeparator();
+
     this->contextMenu->addAction(ui->actionWrite_Function_for_Plots);
-    this->contextMenu->addAction(ui->actionChange_Graph_Color);
+    ui->actionWrite_Function_for_Plots->setIcon(QIcon(":/function.png"));
+
+    this->secondary_contextMenu->setTitle("Clean");
+
+    this->secondary_contextMenu->addAction(ui->actionClear_Datasets_and_Graphs);
+    ui->actionClear_Datasets_and_Graphs->setIcon(QIcon(":/clean.png"));
+    this->secondary_contextMenu->addSeparator();
+
+    this->secondary_contextMenu->addAction(ui->actionRemove_the_Function_Graph);
+    ui->actionRemove_the_Function_Graph->setIcon(QIcon(":/remove.png"));
+    this->secondary_contextMenu->addSeparator();
+
+    this->secondary_contextMenu->addAction(ui->actionClean_the_Screen);
+    ui->actionClean_the_Screen->setIcon(QIcon(":/eraser.png"));
+
+    this->contextMenu->addMenu(this->secondary_contextMenu);
+
+    this->graph_selectedMenu->addAction(ui->actionChange_Graph_Color);
+    ui->actionChange_Graph_Color->setIcon(QIcon(":/painter.png"));
 }
 
+void DataProcessApp::resetFiles()
+{
+    ui->customPlot->clearGraphs();
+    ui->customPlot->replot();
+    this->file_name_list->clear();
+    this->fileName_dataset_map->clear();
+    this->selectDialog->clearFilesInList();
+    this->selected_datasets_list->clear();
+    this->selected_dataset_key_domains_vec->clear();
+    this->selected_dataset_value_domains_vec->clear();
+    this->invalid_file_name_list->clear();
+}
 
 
 /*=====================================================SLOTS======================================================================*/
@@ -220,23 +259,24 @@ void DataProcessApp::constructContextMenu()
 
 void DataProcessApp::on_actionLoad_Datasets_triggered()
 {
-    //preparation for loading datasets
-    bool are_all_files_valid = true;
-
     QStringList fileNames=QFileDialog::getOpenFileNames(this,"Load a file"); // Asking the user what file they want to load and where it is stored
 
-    if(!fileNames.isEmpty()){
-        ui->customPlot->clearGraphs();
-        ui->customPlot->replot();
-        this->file_name_list->clear();
-        this->fileName_dataset_map->clear();
-        this->selectDialog->clearFilesInList();
-        this->invalid_file_name_list->clear();
-    }else{
+    if(fileNames.isEmpty()){
         return;
     }
 
+    bool has_any_file_been_loaded=false;
+    bool has_repeat_loaded_file=false;
+
+    this->invalid_file_name_list->clear();
+
     for (int i = 0; i < fileNames.size(); ++i) {
+
+        if(this->file_name_list->contains(fileNames.at(i))){
+            has_repeat_loaded_file=true;
+            continue;
+        }
+
         QFile loadFile(fileNames.at(i)); // Creating a new file with the file name given by the user
         loadFile.open(QIODevice::ReadOnly); // Openning the file for reading
         QTextStream input(&loadFile); // Defining the text stream to be "extracted" from the file
@@ -246,7 +286,6 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
         QVector<Point> point_vec;
 
         if(!isFileFormatValid(point_list)){ //record invalid files which not conform to x.xx... , x.xx...
-            are_all_files_valid=false;
             this->invalid_file_name_list->append(fileNames.at(i));
         }else{ //if the file format is valid, process it further
             foreach (QString point_str, point_list) { //store the points in the dataset into vector
@@ -258,9 +297,9 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
             std::sort(point_vec.begin(),point_vec.end(),Point::sortByXCoordinate);//sort points by x coordinate value
 
             if(!isEveryXValueUnique(point_vec)){ //although format is valid, we need to check again the value in x coordinate
-                are_all_files_valid=false;
                 this->invalid_file_name_list->append(fileNames.at(i));
             }else{
+                has_any_file_been_loaded=true;
                 this->file_name_list->append(fileNames.at(i)); //store the filename selected by the user
                 this->fileName_dataset_map->insert(fileNames.at(i),point_vec); //map the file name with the datasets
             }
@@ -271,7 +310,7 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
     this->selectDialog->setFilesInList(*(this->file_name_list)); //list the loaded datasets for users to select in a new dialog
 
     //display error dialog to users if there are invalid files
-    if(!are_all_files_valid){
+    if(!this->invalid_file_name_list->isEmpty()){
         QString error_message="The file format of the following file(s) are incorrcect!\n\n";
         foreach (QString invalid_file_name, *(this->invalid_file_name_list)) {
             error_message.append(invalid_file_name).append(",\n\n");
@@ -282,17 +321,23 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
         this->exceptionDialog->exec();
     }
 
-    if(!this->file_name_list->isEmpty()){
+    if(has_any_file_been_loaded){
         QMessageBox msgBox;
-        if(!are_all_files_valid){
+        if(!this->invalid_file_name_list->isEmpty()){
             msgBox.setText("The other valid datasets you selected has been loaded and you can select them in the tool bar now.");
             msgBox.exec();
         }else{
             msgBox.setText("All datasets you selected has been loaded successfully and you can select them in the tool bar now.");
             msgBox.exec();
         }
-
+    }else{
+        if(has_repeat_loaded_file&&this->invalid_file_name_list->isEmpty()){
+            QMessageBox msgBox;
+            msgBox.setText("Please don't repeat loading the same file.");
+            msgBox.exec();
+        }
     }
+
 }
 
 
@@ -328,8 +373,8 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
         ui->customPlot->rescaleAxes();
         ui->customPlot->replot();
 
-        *(this->dataset_key_domains_vec_attr)=dataset_key_domains_vec;
-        *(this->dataset_value_domains_vec_attr)=dataset_values_domains_vec;
+        *(this->selected_dataset_key_domains_vec)=dataset_key_domains_vec;
+        *(this->selected_dataset_value_domains_vec)=dataset_values_domains_vec;
 
         //let the user write the function for datasets and plot the new one
         if(this->selected_datasets_list->size()>1){
@@ -341,8 +386,34 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
 
 void DataProcessApp::on_actionWrite_Function_for_Plots_triggered()
 {
-    addGraphFromFunction(*(this->dataset_key_domains_vec_attr),*(this->dataset_value_domains_vec_attr));
+    addGraphFromFunction(*(this->selected_dataset_key_domains_vec),*(this->selected_dataset_value_domains_vec));
 }
+
+void DataProcessApp::on_actionClear_Datasets_and_Graphs_triggered()
+{
+    resetFiles();
+}
+
+void DataProcessApp::on_actionRemove_the_Function_Graph_triggered()
+{
+    if(ui->customPlot->graphCount()>this->selected_datasets_list->size()){
+        ui->customPlot->removeGraph(this->selected_datasets_list->size());
+        ui->customPlot->rescaleAxes();
+        ui->customPlot->replot();
+    }else{
+        QMessageBox msgBox;
+        msgBox.setText("No functions has been plotted.");
+        msgBox.exec();
+    }
+}
+
+void DataProcessApp::on_actionClean_the_Screen_triggered()
+{
+    this->selected_datasets_list->clear();
+    ui->customPlot->clearGraphs();
+    ui->customPlot->replot();
+}
+
 
 /*
  * change color by double clicking the graph
@@ -373,7 +444,12 @@ void DataProcessApp::legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem 
 
 void DataProcessApp::plotContextMenuRequest(QPoint pos)
 {
-    this->contextMenu->popup(ui->customPlot->mapToGlobal(pos));
+    if(ui->customPlot->selectedGraphs().size()==0){
+        this->contextMenu->popup(ui->customPlot->mapToGlobal(pos));
+    }else{
+        this->graph_selectedMenu->popup(ui->customPlot->mapToGlobal(pos));
+    }
+
 }
 
 void DataProcessApp::on_actionChange_Graph_Color_triggered()
@@ -404,4 +480,3 @@ void DataProcessApp::dragScreenByPress()
       else
         ui->customPlot->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
 }
-

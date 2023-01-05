@@ -6,9 +6,8 @@ ExceptionDialog::ExceptionDialog(QWidget *parent) :
     ui(new Ui::ExceptionDialog)
 {
     ui->setupUi(this);
-    this->setSizeGripEnabled(true);
     this->setWindowIcon(QIcon(":/error.png"));
-    update();
+    this->setSizeGripEnabled(true);
 }
 
 ExceptionDialog::~ExceptionDialog()

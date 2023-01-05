@@ -6,6 +6,7 @@ DatasetSelectDialog::DatasetSelectDialog(QWidget *parent) :
     ui(new Ui::DatasetSelectDialog)
 {
     ui->setupUi(this);
+    this->setWindowIcon(QIcon(":/plot.png"));
     this->setSizeGripEnabled(true);
     ui->listWidget->setSelectionMode(QAbstractItemView::MultiSelection);
 }

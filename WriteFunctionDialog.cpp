@@ -6,6 +6,7 @@ WriteFunctionDialog::WriteFunctionDialog(QWidget *parent) :
     ui(new Ui::WriteFunctionDialog)
 {
     ui->setupUi(this);
+    this->setWindowIcon(QIcon(":/function.png"));
     this->setSizeGripEnabled(true);
 }
 

@@ -40,4 +40,4 @@ DISTFILES += \
     README.md
 
 RESOURCES += \
-    ErrorIcon.qrc
+    Icon.qrc
