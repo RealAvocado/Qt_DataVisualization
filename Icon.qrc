@@ -8,7 +8,6 @@
         <file>eraser.png</file>
         <file>delete_file.png</file>
         <file>plot.png</file>
-        <file>DataVisualization2.png</file>
         <file>DataVisualization.png</file>
     </qresource>
 </RCC>

@@ -29,6 +29,11 @@ void DatasetSelectDialog::clearFilesInList()
     ui->listWidget->clear();
 }
 
+void DatasetSelectDialog::clearSelection()
+{
+    ui->listWidget->clearSelection();
+}
+
 QList<QListWidgetItem*>* DatasetSelectDialog::getSelected_datasets_list()
 {
     return this->selected_datasets_list;
@@ -43,15 +48,18 @@ void DatasetSelectDialog::on_buttonBox_accepted()
 {
     *(this->is_dialog_accepted)=true;
     *(this->selected_datasets_list)=ui->listWidget->selectedItems();
+    ui->listWidget->clearSelection();
 }
 
 
 void DatasetSelectDialog::on_buttonBox_rejected()
-{
+{   
     *(this->is_dialog_accepted)=false;
+    ui->listWidget->clearSelection();
 }
 
 void DatasetSelectDialog::closeEvent(QCloseEvent *e)
 {
+    ui->listWidget->clearSelection();
     *(this->is_dialog_accepted)=false;
 }

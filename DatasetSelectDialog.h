@@ -17,6 +17,7 @@ public:
 
     void setFilesInList(QStringList file_name_list);
     void clearFilesInList();
+    void clearSelection();
     QList<QListWidgetItem*>* getSelected_datasets_list();
     bool getIsDialogAccepted();
     void closeEvent(QCloseEvent *e);

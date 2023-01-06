@@ -417,6 +417,7 @@ void DataProcessApp::on_actionRemove_the_Function_Graph_triggered()
 
 void DataProcessApp::on_actionClean_the_Screen_triggered()
 {
+    this->selectDialog->clearSelection();
     this->selected_datasets_list->clear();
     ui->customPlot->clearGraphs();
     ui->customPlot->replot();
