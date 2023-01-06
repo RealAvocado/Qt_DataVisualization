@@ -60,6 +60,6 @@ void DatasetSelectDialog::on_buttonBox_rejected()
 
 void DatasetSelectDialog::closeEvent(QCloseEvent *e)
 {
-    ui->listWidget->clearSelection();
     *(this->is_dialog_accepted)=false;
+    ui->listWidget->clearSelection();
 }
