@@ -223,8 +223,8 @@ void DataProcessApp::constructContextMenu()
 
     this->secondary_contextMenu->setTitle("Clean");
 
-    this->secondary_contextMenu->addAction(ui->actionClear_Datasets_and_Graphs);
-    ui->actionClear_Datasets_and_Graphs->setIcon(QIcon(":/clean.png"));
+    this->secondary_contextMenu->addAction(ui->actionDelete_All_Datasets_and_Graphs);
+    ui->actionDelete_All_Datasets_and_Graphs->setIcon(QIcon(":/delete_file.png"));
     this->secondary_contextMenu->addSeparator();
 
     this->secondary_contextMenu->addAction(ui->actionRemove_the_Function_Graph);
@@ -315,7 +315,7 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
         foreach (QString invalid_file_name, *(this->invalid_file_name_list)) {
             error_message.append(invalid_file_name).append(",\n\n");
         }
-        error_message.append("Possible reasons are:\n1. The format of some rows are not in 'd.dd...(or d),d.dd...(or d)' format. The 'd' represents a digit and no space is allowed.\n2. There are multiple values mapped to a same x coordinate value.\n\n");
+        error_message.append("Possible reasons are:\n1. The format of some rows are not in 'd.dd...(or d),d.dd...(or d)' format. The 'd' represents a digit and no space is allowed.\n2. A same x coordinate value exists repeatedly.\n\n");
         error_message.append("A correct example is shown below:\n1,2\n1.5,3.0\n3.0,6\n...");
         this->exceptionDialog->setDialogMessage(error_message);
         this->exceptionDialog->exec();
@@ -339,7 +339,6 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
     }
 
 }
-
 
 void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
 {
@@ -383,13 +382,12 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
     }
 }
 
-
 void DataProcessApp::on_actionWrite_Function_for_Plots_triggered()
 {
     addGraphFromFunction(*(this->selected_dataset_key_domains_vec),*(this->selected_dataset_value_domains_vec));
 }
 
-void DataProcessApp::on_actionClear_Datasets_and_Graphs_triggered()
+void DataProcessApp::on_actionDelete_All_Datasets_and_Graphs_triggered()
 {
     resetFiles();
 }
@@ -402,7 +400,7 @@ void DataProcessApp::on_actionRemove_the_Function_Graph_triggered()
         ui->customPlot->replot();
     }else{
         QMessageBox msgBox;
-        msgBox.setText("No functions has been plotted.");
+        msgBox.setText("No functions have been plotted.");
         msgBox.exec();
     }
 }

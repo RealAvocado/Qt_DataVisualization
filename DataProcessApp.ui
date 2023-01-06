@@ -46,7 +46,7 @@
     <addaction name="separator"/>
     <addaction name="actionChange_Graph_Color"/>
     <addaction name="separator"/>
-    <addaction name="actionClear_Datasets_and_Graphs"/>
+    <addaction name="actionDelete_All_Datasets_and_Graphs"/>
     <addaction name="separator"/>
     <addaction name="actionRemove_the_Function_Graph"/>
     <addaction name="separator"/>
@@ -73,7 +73,7 @@
    <addaction name="separator"/>
    <addaction name="actionChange_Graph_Color"/>
    <addaction name="separator"/>
-   <addaction name="actionClear_Datasets_and_Graphs"/>
+   <addaction name="actionDelete_All_Datasets_and_Graphs"/>
    <addaction name="separator"/>
    <addaction name="actionClean_the_Screen"/>
   </widget>
@@ -100,7 +100,7 @@
     <string>Change Graph Color</string>
    </property>
   </action>
-  <action name="actionClear_Datasets_and_Graphs">
+  <action name="actionDelete_All_Datasets_and_Graphs">
    <property name="text">
     <string>Delete All Datasets and Graphs</string>
    </property>

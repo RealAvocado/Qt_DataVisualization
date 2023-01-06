@@ -59,7 +59,7 @@ private slots:
 
     void on_actionWrite_Function_for_Plots_triggered();
 
-    void on_actionClear_Datasets_and_Graphs_triggered();
+    void on_actionDelete_All_Datasets_and_Graphs_triggered();
 
     void on_actionRemove_the_Function_Graph_triggered();
 
@@ -78,6 +78,7 @@ private slots:
     void zoomGraphByWheel();
 
     void dragScreenByPress();
+
 
 private:
     Ui::DataProcessApp *ui;
