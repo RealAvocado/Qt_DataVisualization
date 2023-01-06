@@ -38,6 +38,8 @@ public:
 
     bool areDomainsIdentical(QVector<QVector<double> > &dataset_domains_vec);
 
+    QString getTruncFileName(QString &file_name);
+
     void setSelected_datasets_list(QList<QListWidgetItem*> *list_widget);
 
     void addGraphFromFunction(QVector<QVector<double> > &dataset_key_domains_vec, QVector<QVector<double> > &dataset_value_domains_vec);

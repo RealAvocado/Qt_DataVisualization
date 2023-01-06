@@ -101,6 +101,13 @@ bool DataProcessApp::areDomainsIdentical(QVector<QVector<double>> &dataset_domai
     return true;
 }
 
+QString DataProcessApp::getTruncFileName(QString &file_name)
+{
+    int slash_index=file_name.lastIndexOf("/"); // superman/project/data.txt
+    int dot_index=file_name.lastIndexOf(".");
+    return file_name.mid(slash_index+1,dot_index-slash_index-1);
+}
+
 void DataProcessApp::setSelected_datasets_list(QList<QListWidgetItem*> *list_widget)
 {
     this->selected_datasets_list->clear();
@@ -177,8 +184,10 @@ void DataProcessApp::runFunctionDialog()
     if(this->selected_datasets_list->size()>=2){
         available_func_for_user.append("product");
         available_func_for_user.append("sum");
-        available_func_for_user.append("square sum");
-        available_func_for_user.append("root sum");
+        if(this->selected_datasets_list->size()>=3){
+            available_func_for_user.append("square sum");
+            available_func_for_user.append("root sum");
+        }
         this->functionDialog->setFunctionList(available_func_for_user);
         this->functionDialog->setUserHint(available_func_for_user, this->selected_datasets_list->size());
         this->functionDialog->reset();
@@ -344,7 +353,7 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
 {
     this->selectDialog->exec();
 
-    //process the plot request only whrn the dialog is accepted
+    //process the plot request only when the dialog is accepted
     if(this->selectDialog->getIsDialogAccepted()){
         ui->customPlot->clearGraphs();
 
@@ -355,18 +364,19 @@ void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
 
         //plot selected datasets
         for (int i = 0; i < this->selected_datasets_list->size(); ++i) {
-            QVector<Point> point_vec = this->fileName_dataset_map->value(this->selected_datasets_list->at(i));
+            QString file_name = this->selected_datasets_list->at(i);
+            QVector<Point> point_vec = this->fileName_dataset_map->value(file_name);
             QVector<double> coordinate_x_vec;
             QVector<double> coordinate_y_vec;
             foreach (Point point, point_vec) {
                 coordinate_x_vec.push_back(point.x);
                 coordinate_y_vec.push_back(point.y);
             }
-            dataset_key_domains_vec.push_back(coordinate_x_vec); //record the key domain of each dataset
-            dataset_values_domains_vec.push_back(coordinate_y_vec); //record the value domain of each dataset
+            dataset_key_domains_vec.push_back(coordinate_x_vec);
+            dataset_values_domains_vec.push_back(coordinate_y_vec);
 
             ui->customPlot->addGraph();
-            ui->customPlot->graph(i)->setName("Data "+QString::number(i+1));
+            ui->customPlot->graph(i)->setName("Data "+QString::number(i+1)+": "+getTruncFileName(file_name));
             ui->customPlot->graph(i)->setData(coordinate_x_vec,coordinate_y_vec);
         }
         ui->customPlot->rescaleAxes();
