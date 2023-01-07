@@ -34,7 +34,7 @@ public:
 
     bool isFileFormatValid(QStringList &file_content_list);
 
-    bool isEveryXValueUnique(QVector<Point> &point_vec);
+    bool isEveryKeyUnique(QVector<Point> &point_vec);
 
     bool areDomainsIdentical(QVector<QVector<double> > &dataset_domains_vec);
 

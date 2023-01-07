@@ -61,7 +61,7 @@ bool DataProcessApp::isFileFormatValid(QStringList &file_content_list)
 
 /*if regex is valid, then check if there are multiple y values mapped to a same x coordinate value, which is not allowed.
 */
-bool DataProcessApp::isEveryXValueUnique(QVector<Point> &point_vec)
+bool DataProcessApp::isEveryKeyUnique(QVector<Point> &point_vec)
 {
     Point current_point;
     Point previous_point;
@@ -172,7 +172,7 @@ void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > &dataset_key
             ui->customPlot->rescaleAxes();
             ui->customPlot->replot();
         }else{
-            this->exceptionDialog->setDialogMessage("Function failed! Please ensure the domain of datasets are identical.");
+            this->exceptionDialog->setDialogMessage("Function failed! Please ensure the x domain of datasets are identical.");
             this->exceptionDialog->exec();
         }
     }
@@ -275,29 +275,28 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
     }
 
     bool has_any_file_been_loaded=false;
-    bool has_repeat_loaded_file=false;
 
     this->invalid_file_name_list->clear();
 
     for (int i = 0; i < fileNames.size(); ++i) {
-
-        if(this->file_name_list->contains(fileNames.at(i))){
-            has_repeat_loaded_file=true;
-            continue;
-        }
-
         QFile loadFile(fileNames.at(i)); // Creating a new file with the file name given by the user
         loadFile.open(QIODevice::ReadOnly); // Openning the file for reading
         QTextStream input(&loadFile); // Defining the text stream to be "extracted" from the file
-        QString read_text=input.readAll(); // finally doing the reading
+        QStringList line_list;
 
-        QStringList point_list=read_text.split("\r\n");
+        while (!input.atEnd())
+          {
+             QString line = input.readLine(); //read one line at a time
+             line_list.append(line);
+          }
+        loadFile.close();
+
         QVector<Point> point_vec;
 
-        if(!isFileFormatValid(point_list)){ //record invalid files which not conform to x.xx... , x.xx...
+        if(!isFileFormatValid(line_list)){ //record invalid files which not conform to x.xx... , x.xx...
             this->invalid_file_name_list->append(fileNames.at(i));
         }else{ //if the file format is valid, process it further
-            foreach (QString point_str, point_list) { //store the points in the dataset into vector
+            foreach (QString point_str, line_list) { //store the points in the dataset into vector
                 QStringList point_coordinate_pair=point_str.split(",");
                 Point point(point_coordinate_pair.at(0).toDouble(),point_coordinate_pair.at(1).toDouble());
                 point_vec.push_back(point);
@@ -305,15 +304,16 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
 
             std::sort(point_vec.begin(),point_vec.end(),Point::sortByXCoordinate);//sort points by x coordinate value
 
-            if(!isEveryXValueUnique(point_vec)){ //although format is valid, we need to check again the value in x coordinate
+            if(!isEveryKeyUnique(point_vec)){ //although format is valid, we need to check again if the keys are unique
                 this->invalid_file_name_list->append(fileNames.at(i));
             }else{
                 has_any_file_been_loaded=true;
-                this->file_name_list->append(fileNames.at(i)); //store the filename selected by the user
+                if(!this->file_name_list->contains(fileNames.at(i))){
+                    this->file_name_list->append(fileNames.at(i)); //store the filename selected by the user
+                }
                 this->fileName_dataset_map->insert(fileNames.at(i),point_vec); //map the file name with the datasets
             }
-        }
-        loadFile.close();
+        }  
     }
 
     this->selectDialog->setFilesInList(*(this->file_name_list)); //list the loaded datasets for users to select in a new dialog
@@ -339,14 +339,7 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
             msgBox.setText("All datasets you selected has been loaded successfully and you can select them in the tool bar now.");
             msgBox.exec();
         }
-    }else{
-        if(has_repeat_loaded_file&&this->invalid_file_name_list->isEmpty()){
-            QMessageBox msgBox;
-            msgBox.setText("Please don't repeat loading the same file.");
-            msgBox.exec();
-        }
     }
-
 }
 
 void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()

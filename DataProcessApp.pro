@@ -37,7 +37,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    README.md
+    README.md \
+    wave1.txt \
+    wave2.txt \
+    wave3.txt
 
 RESOURCES += \
     Icon.qrc
