@@ -334,7 +334,9 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
         }
         error_message.append("Possible reasons are:\n1. The format of some rows are not in 'd.dd...(or d),d.dd...(or d)' format. The 'd' represents a digit and no space is allowed.\n2. A same x axis key exists repeatedly.\n\n");
         error_message.append("A correct example is shown below:\n1,2\n1.5,3.0\n3.0,6\n...");
-        runMessageBox(QMessageBox::Critical,error_message);
+        ExceptionDialog dialog;
+        dialog.setDialogMessage(error_message);
+        dialog.exec();
     }
 
     if(has_any_file_been_loaded){

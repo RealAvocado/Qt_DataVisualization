@@ -17,6 +17,7 @@
 #include <math.h>
 #include "point.h"
 #include "DatasetSelectDialog.h"
+#include "ExceptionDialog.h"
 #include "WriteFunctionDialog.h"
 
 QT_BEGIN_NAMESPACE
