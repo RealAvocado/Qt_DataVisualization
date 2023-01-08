@@ -69,7 +69,6 @@ void WriteFunctionDialog::on_buttonBox_accepted()
             msgBox.setIcon(QMessageBox::Warning);
             msgBox.setText("Please write a correct available function.");
             msgBox.exec();
-
         }else{
             *(this->selected_func_str)=user_written_func;
         }

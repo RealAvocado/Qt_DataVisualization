@@ -236,6 +236,7 @@ void DataProcessApp::constructContextMenu()
 
     this->contextMenu->addAction(ui->actionRestore_to_Original_View);
     ui->actionRestore_to_Original_View->setIcon(QIcon(":/restore.png"));
+    this->contextMenu->addSeparator();
 
     this->secondary_contextMenu->setTitle("Clean");
 
@@ -331,7 +332,7 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
         foreach (QString invalid_file_name, *(this->invalid_file_name_list)) {
             error_message.append(invalid_file_name).append(",\n\n");
         }
-        error_message.append("Possible reasons are:\n1. The format of some rows are not in 'd.dd...(or d),d.dd...(or d)' format. The 'd' represents a digit and no space is allowed.\n2. A same x axis value exists repeatedly.\n\n");
+        error_message.append("Possible reasons are:\n1. The format of some rows are not in 'd.dd...(or d),d.dd...(or d)' format. The 'd' represents a digit and no space is allowed.\n2. A same x axis key exists repeatedly.\n\n");
         error_message.append("A correct example is shown below:\n1,2\n1.5,3.0\n3.0,6\n...");
         runMessageBox(QMessageBox::Critical,error_message);
     }
