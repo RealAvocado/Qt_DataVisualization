@@ -39,7 +39,6 @@ DataProcessApp::~DataProcessApp()
     delete selected_dataset_key_domains_vec;
     delete selected_dataset_value_domains_vec;
     delete invalid_file_name_list;
-    delete exceptionDialog;
     delete functionDialog;
     delete contextMenu;
     delete secondary_contextMenu;
@@ -172,8 +171,7 @@ void DataProcessApp::addGraphFromFunction(QVector<QVector<double> > &dataset_key
             ui->customPlot->rescaleAxes();
             ui->customPlot->replot();
         }else{
-            this->exceptionDialog->setDialogMessage("Function failed! Please ensure the x domain of datasets are identical.");
-            this->exceptionDialog->exec();
+            runMessageBox(QMessageBox::Warning,"Function failed! Please ensure the x domain of datasets are identical.");
         }
     }
 }
@@ -193,9 +191,7 @@ void DataProcessApp::runFunctionDialog()
         this->functionDialog->reset();
         this->functionDialog->exec();
     } else{
-        QMessageBox msgBox;
-        msgBox.setText("Please plot more than one dataset.");
-        msgBox.exec();
+        runMessageBox(QMessageBox::Information,"Please plot more than one dataset.");
         this->functionDialog->reset();
     }
 }
@@ -203,9 +199,7 @@ void DataProcessApp::runFunctionDialog()
 void DataProcessApp::runColorDialog()
 {
     if(ui->customPlot->selectedGraphs().isEmpty()){
-        QMessageBox msgBox;
-        msgBox.setText("No graphs have been selected yet. Please select graphs first.");
-        msgBox.exec();
+        runMessageBox(QMessageBox::Information,"No graphs have been selected yet. Please select graphs first.");
     } else{
         QColor color = QColorDialog::getColor();
         if(color.isValid()){
@@ -215,6 +209,15 @@ void DataProcessApp::runColorDialog()
         }
         ui->customPlot->replot();
     }
+}
+
+//display run-time messages to users
+void DataProcessApp::runMessageBox(QMessageBox::Icon icon, QString message)
+{
+    QMessageBox msgBox;
+    msgBox.setIcon(icon);
+    msgBox.setText(message);
+    msgBox.exec();
 }
 
 void DataProcessApp::constructContextMenu()
@@ -229,6 +232,10 @@ void DataProcessApp::constructContextMenu()
 
     this->contextMenu->addAction(ui->actionWrite_Function_for_Plots);
     ui->actionWrite_Function_for_Plots->setIcon(QIcon(":/function.png"));
+    this->contextMenu->addSeparator();
+
+    this->contextMenu->addAction(ui->actionRestore_to_Original_View);
+    ui->actionRestore_to_Original_View->setIcon(QIcon(":/restore.png"));
 
     this->secondary_contextMenu->setTitle("Clean");
 
@@ -324,20 +331,16 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
         foreach (QString invalid_file_name, *(this->invalid_file_name_list)) {
             error_message.append(invalid_file_name).append(",\n\n");
         }
-        error_message.append("Possible reasons are:\n1. The format of some rows are not in 'd.dd...(or d),d.dd...(or d)' format. The 'd' represents a digit and no space is allowed.\n2. A same x coordinate value exists repeatedly.\n\n");
+        error_message.append("Possible reasons are:\n1. The format of some rows are not in 'd.dd...(or d),d.dd...(or d)' format. The 'd' represents a digit and no space is allowed.\n2. A same x axis value exists repeatedly.\n\n");
         error_message.append("A correct example is shown below:\n1,2\n1.5,3.0\n3.0,6\n...");
-        this->exceptionDialog->setDialogMessage(error_message);
-        this->exceptionDialog->exec();
+        runMessageBox(QMessageBox::Critical,error_message);
     }
 
     if(has_any_file_been_loaded){
-        QMessageBox msgBox;
         if(!this->invalid_file_name_list->isEmpty()){
-            msgBox.setText("The other valid datasets you selected has been loaded and you can select them in the tool bar now.");
-            msgBox.exec();
-        }else{
-            msgBox.setText("All datasets you selected has been loaded successfully and you can select them in the tool bar now.");
-            msgBox.exec();
+            runMessageBox(QMessageBox::Information,"The other valid datasets you selected has been loaded and you can select them in the tool bar now.");
+        }else{           
+            runMessageBox(QMessageBox::Information,"All datasets you selected has been loaded successfully and you can select them in the tool bar now.");
         }
     }
 }
@@ -392,7 +395,18 @@ void DataProcessApp::on_actionWrite_Function_for_Plots_triggered()
 
 void DataProcessApp::on_actionDelete_All_Datasets_and_Graphs_triggered()
 {
-    resetFiles();
+    if(this->file_name_list->isEmpty()){
+        runMessageBox(QMessageBox::Information,"No datasets have been loaded yet.");
+    }else{
+        QMessageBox::StandardButton respond;
+        respond=QMessageBox::warning(this,"Delete all datasets",
+                                     "Are you sure to delete all datasets from the application? You can still load them later.",
+                                     QMessageBox::Ok|QMessageBox::Cancel);
+
+        if(respond==QMessageBox::Ok){
+            resetFiles();
+        }
+    }
 }
 
 void DataProcessApp::on_actionRemove_the_Function_Graph_triggered()
@@ -402,9 +416,7 @@ void DataProcessApp::on_actionRemove_the_Function_Graph_triggered()
         ui->customPlot->rescaleAxes();
         ui->customPlot->replot();
     }else{
-        QMessageBox msgBox;
-        msgBox.setText("No functions have been plotted.");
-        msgBox.exec();
+        runMessageBox(QMessageBox::Information,"No functions have been plotted.");
     }
 }
 
@@ -416,6 +428,11 @@ void DataProcessApp::on_actionClean_the_Screen_triggered()
     ui->customPlot->replot();
 }
 
+void DataProcessApp::on_actionRestore_to_Original_View_triggered()
+{
+    ui->customPlot->rescaleAxes();
+    ui->customPlot->replot();
+}
 
 /*
  * change color by double clicking the graph
@@ -482,3 +499,5 @@ void DataProcessApp::dragScreenByPress()
       else
         ui->customPlot->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
 }
+
+

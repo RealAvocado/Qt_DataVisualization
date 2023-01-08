@@ -51,6 +51,8 @@
     <addaction name="actionRemove_the_Function_Graph"/>
     <addaction name="separator"/>
     <addaction name="actionClean_the_Screen"/>
+    <addaction name="separator"/>
+    <addaction name="actionRestore_to_Original_View"/>
    </widget>
    <addaction name="menuLoad"/>
   </widget>
@@ -116,6 +118,11 @@
   <action name="actionClean_the_Screen">
    <property name="text">
     <string>Clean the Screen</string>
+   </property>
+  </action>
+  <action name="actionRestore_to_Original_View">
+   <property name="text">
+    <string>Restore to Original View</string>
    </property>
   </action>
  </widget>

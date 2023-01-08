@@ -17,7 +17,6 @@
 #include <math.h>
 #include "point.h"
 #include "DatasetSelectDialog.h"
-#include "ExceptionDialog.h"
 #include "WriteFunctionDialog.h"
 
 QT_BEGIN_NAMESPACE
@@ -48,6 +47,8 @@ public:
 
     void runColorDialog();
 
+    void runMessageBox(QMessageBox::Icon icon, QString message);
+
     void constructContextMenu();
 
     void resetFiles();
@@ -67,6 +68,8 @@ private slots:
 
     void on_actionClean_the_Screen_triggered();
 
+    void on_actionRestore_to_Original_View_triggered();
+
     // slots used to change colors
 
     void graphDoubleClicked(QCPAbstractPlottable*);
@@ -81,7 +84,6 @@ private slots:
 
     void dragScreenByPress();
 
-
 private:
     Ui::DataProcessApp *ui;
 
@@ -94,7 +96,6 @@ private:
     QVector<QVector<double>>* selected_dataset_value_domains_vec = new QVector<QVector<double>>; //store the y value of selected datasets
 
     QStringList *invalid_file_name_list = new QStringList; //record datasets that have invalid formats
-    ExceptionDialog *exceptionDialog = new ExceptionDialog(); //the dialog used to show error messages when exception occurs
     WriteFunctionDialog *functionDialog = new WriteFunctionDialog(); //the dialog used to allow the user wo write functions
 
     QMenu *contextMenu=new QMenu(); //used to display context menu

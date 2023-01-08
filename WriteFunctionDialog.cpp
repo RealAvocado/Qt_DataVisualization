@@ -15,7 +15,6 @@ WriteFunctionDialog::~WriteFunctionDialog()
     delete ui;
     delete function_list;
     delete selected_func_str;
-    delete exceptionDialog;
     delete is_dialog_accepted;
 }
 
@@ -66,8 +65,11 @@ void WriteFunctionDialog::on_buttonBox_accepted()
         QString user_written_func=ui->lineEdit->text();
         if(!this->function_list->contains(user_written_func)&&!user_written_func.isEmpty()){
             this->selected_func_str->clear();
-            this->exceptionDialog->setDialogMessage("Please write a correct available function!");
-            this->exceptionDialog->exec();
+            QMessageBox msgBox;
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Please write a correct available function.");
+            msgBox.exec();
+
         }else{
             *(this->selected_func_str)=user_written_func;
         }

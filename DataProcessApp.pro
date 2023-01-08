@@ -10,7 +10,6 @@ CONFIG += c++17
 
 SOURCES += \
     DatasetSelectDialog.cpp \
-    ExceptionDialog.cpp \
     WriteFunctionDialog.cpp \
     main.cpp \
     DataProcessApp.cpp \
@@ -20,7 +19,6 @@ SOURCES += \
 HEADERS += \
     DataProcessApp.h \
     DatasetSelectDialog.h \
-    ExceptionDialog.h \
     WriteFunctionDialog.h \
     point.h \
     qcustomplot.h
@@ -28,7 +26,6 @@ HEADERS += \
 FORMS += \
     DataProcessApp.ui \
     DatasetSelectDialog.ui \
-    ExceptionDialog.ui \
     WriteFunctionDialog.ui
 
 # Default rules for deployment.

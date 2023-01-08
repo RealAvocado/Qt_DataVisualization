@@ -2,7 +2,7 @@
 #define WRITEFUNCTIONDIALOG_H
 
 #include <QDialog>
-#include <ExceptionDialog.h>
+#include <QMessageBox>
 
 namespace Ui {
 class WriteFunctionDialog;
@@ -32,7 +32,6 @@ private:
     Ui::WriteFunctionDialog *ui;
     QStringList* function_list = new QStringList;
     QString* selected_func_str = new QString;
-    ExceptionDialog *exceptionDialog = new ExceptionDialog();
     bool *is_dialog_accepted = new bool;
 };
 

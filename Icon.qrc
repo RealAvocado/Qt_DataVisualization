@@ -9,5 +9,6 @@
         <file>delete_file.png</file>
         <file>plot.png</file>
         <file>DataVisualization.png</file>
+        <file>restore.png</file>
     </qresource>
 </RCC>
