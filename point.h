@@ -5,8 +5,8 @@
 class Point
 {
 public:
-    double x;
-    double y;
+    double x; //key
+    double y; //value
     Point();
     Point(double x, double y);
 

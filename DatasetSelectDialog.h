@@ -15,11 +15,11 @@ public:
     explicit DatasetSelectDialog(QWidget *parent = nullptr);
     ~DatasetSelectDialog();
 
-    void setFilesInList(QStringList file_name_list);
+    void setFilesInList(QStringList file_name_list); //display loaded files
     void clearFilesInList();
     void clearSelection();
-    QList<QListWidgetItem*>* getSelected_datasets_list();
-    bool getIsDialogAccepted();
+    QList<QListWidgetItem*>* getSelected_datasets_list(); //get selected items by users
+    bool getIsDialogAccepted(); //get the last status of the dialog, is accepted or rejected
     void closeEvent(QCloseEvent *e);
 
 private slots:

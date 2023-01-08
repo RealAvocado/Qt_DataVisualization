@@ -16,9 +16,9 @@ public:
     explicit WriteFunctionDialog(QWidget *parent = nullptr);
     ~WriteFunctionDialog();
 
-    void setFunctionList(QStringList function_list);
-    void reset();
-    void setUserHint(QStringList function_list, int selected_dataset_num);
+    void setFunctionList(QStringList function_list); //initialize available functions
+    void reset(); //clear previous contents
+    void setUserHint(QStringList function_list, int selected_dataset_num); //display function information
     QString getSelectedFunction();
     void closeEvent(QCloseEvent *e);
     bool getIsDialogAccepted();
@@ -31,7 +31,7 @@ private slots:
 private:
     Ui::WriteFunctionDialog *ui;
     QStringList* function_list = new QStringList;
-    QString* selected_func_str = new QString;
+    QString* selected_func_str = new QString; //record the choice of users
     bool *is_dialog_accepted = new bool;
 };
 
