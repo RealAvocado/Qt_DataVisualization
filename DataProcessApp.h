@@ -31,58 +31,58 @@ public:
     DataProcessApp(QWidget *parent = nullptr);
     ~DataProcessApp();
 
-    bool isFileFormatValid(QStringList &file_content_list);
+    bool isFileFormatValid(QStringList &file_content_list); //check the format of file content using regular expression
 
-    bool isEveryKeyUnique(QVector<Point> &point_vec);
+    bool isEveryKeyUnique(QVector<Point> &point_vec); //check is there are repeated x axis keys
 
-    bool areDomainsIdentical(QVector<QVector<double> > &dataset_domains_vec);
+    bool areDomainsIdentical(QVector<QVector<double> > &dataset_domains_vec); //check if datasets have the same x axis
 
-    QString getTruncFileName(QString &file_name);
+    QString getTruncFileName(QString &file_name); //truncate the file name for legend
 
-    void setSelected_datasets_list(QList<QListWidgetItem*> *list_widget);
+    void setSelected_datasets_list(QList<QListWidgetItem*> *list_widget); //receive users input of selected datasets
 
-    void addGraphFromFunction(QVector<QVector<double> > &dataset_key_domains_vec, QVector<QVector<double> > &dataset_value_domains_vec);
+    void addGraphFromFunction(QVector<QVector<double> > &dataset_key_domains_vec, QVector<QVector<double> > &dataset_value_domains_vec); //plot new graph according to the function written by user
 
-    void runFunctionDialog();
+    void runFunctionDialog(); //run the dialog for user to write function
 
-    void runColorDialog();
+    void runColorDialog(); //run the dialog for user to pick colour
 
-    void runMessageBox(QMessageBox::Icon icon, QString message);
+    void runMessageBox(QMessageBox::Icon icon, QString message); //run the dialog to show messages to users
 
-    void constructContextMenu();
+    void constructContextMenu(); //context menu
 
-    void resetFiles();
+    void resetFiles(); //clear all the datasets
 
 private slots:
     // slots used to load, plot and delete graphs and datasets
 
-    void on_actionLoad_Datasets_triggered();
+    void on_actionLoad_Datasets_triggered(); //load files in QFileDialog
 
-    void on_actionSelect_Datasets_to_Plot_triggered();
+    void on_actionSelect_Datasets_to_Plot_triggered(); //let users select datasets to be plotted
 
-    void on_actionWrite_Function_for_Plots_triggered();
+    void on_actionWrite_Function_for_Plots_triggered(); //write function
 
-    void on_actionDelete_All_Datasets_and_Graphs_triggered();
+    void on_actionDelete_All_Datasets_and_Graphs_triggered(); //clear all the datasets
 
-    void on_actionRemove_the_Function_Graph_triggered();
+    void on_actionRemove_the_Function_Graph_triggered(); //delete the function graph
 
-    void on_actionClean_the_Screen_triggered();
+    void on_actionClean_the_Screen_triggered(); //clean the screen but don't delete datasets
 
-    void on_actionRestore_to_Original_View_triggered();
+    void on_actionRestore_to_Original_View_triggered(); //restore to original view after zooming and dragging
 
-    // slots used to change colors
+    // slots used for other user interaction
 
-    void graphDoubleClicked(QCPAbstractPlottable*);
+    void graphDoubleClicked(QCPAbstractPlottable*); //execute the QColorDialog after graph is double clicked
 
-    void legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem *item);
+    void legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem *item); //used to change legend label
 
-    void plotContextMenuRequest(QPoint pos);
+    void plotContextMenuRequest(QPoint pos); //pop up the context menu when requested in customPlot
 
-    void on_actionChange_Graph_Color_triggered();
+    void on_actionChange_Graph_Color_triggered(); //change colour
 
-    void zoomGraphByWheel();
+    void zoomGraphByWheel(); //zoom in and out
 
-    void dragScreenByPress();
+    void dragScreenByPress(); //drag graphs
 
 private:
     Ui::DataProcessApp *ui;
@@ -99,7 +99,7 @@ private:
     WriteFunctionDialog *functionDialog = new WriteFunctionDialog(); //the dialog used to allow the user wo write functions
 
     QMenu *contextMenu=new QMenu(); //used to display context menu
-    QMenu *secondary_contextMenu=new QMenu();
+    QMenu *secondary_contextMenu=new QMenu(); //secondary menu
 
     QMenu *graph_selectedMenu=new QMenu(); //only display when graph(s) have been selected by clicking
 

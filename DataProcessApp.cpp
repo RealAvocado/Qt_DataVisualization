@@ -348,43 +348,47 @@ void DataProcessApp::on_actionLoad_Datasets_triggered()
 
 void DataProcessApp::on_actionSelect_Datasets_to_Plot_triggered()
 {
-    this->selectDialog->exec();
+    if(this->file_name_list->isEmpty()){
+        runMessageBox(QMessageBox::Information, "No datasets have been loaded yet.");
+    }else{
+        this->selectDialog->exec();
 
-    //process the plot request only when the dialog is accepted
-    if(this->selectDialog->getIsDialogAccepted()){
-        ui->customPlot->clearGraphs();
+        //process the plot request only when the dialog is accepted and items selected
+        if(this->selectDialog->getIsDialogAccepted()&&!this->selectDialog->getSelected_datasets_list()->isEmpty()){
+            ui->customPlot->clearGraphs();
 
-        this->setSelected_datasets_list(this->selectDialog->getSelected_datasets_list());
+            this->setSelected_datasets_list(this->selectDialog->getSelected_datasets_list());
 
-        QVector<QVector<double>> dataset_key_domains_vec;
-        QVector<QVector<double>> dataset_values_domains_vec;
+            QVector<QVector<double>> dataset_key_domains_vec;
+            QVector<QVector<double>> dataset_values_domains_vec;
 
-        //plot selected datasets
-        for (int i = 0; i < this->selected_datasets_list->size(); ++i) {
-            QString file_name = this->selected_datasets_list->at(i);
-            QVector<Point> point_vec = this->fileName_dataset_map->value(file_name);
-            QVector<double> coordinate_x_vec;
-            QVector<double> coordinate_y_vec;
-            foreach (Point point, point_vec) {
-                coordinate_x_vec.push_back(point.x);
-                coordinate_y_vec.push_back(point.y);
+            //plot selected datasets
+            for (int i = 0; i < this->selected_datasets_list->size(); ++i) {
+                QString file_name = this->selected_datasets_list->at(i);
+                QVector<Point> point_vec = this->fileName_dataset_map->value(file_name);
+                QVector<double> coordinate_x_vec;
+                QVector<double> coordinate_y_vec;
+                foreach (Point point, point_vec) {
+                    coordinate_x_vec.push_back(point.x);
+                    coordinate_y_vec.push_back(point.y);
+                }
+                dataset_key_domains_vec.push_back(coordinate_x_vec);
+                dataset_values_domains_vec.push_back(coordinate_y_vec);
+
+                ui->customPlot->addGraph();
+                ui->customPlot->graph(i)->setName("Data "+QString::number(i+1)+": "+getTruncFileName(file_name));
+                ui->customPlot->graph(i)->setData(coordinate_x_vec,coordinate_y_vec);
             }
-            dataset_key_domains_vec.push_back(coordinate_x_vec);
-            dataset_values_domains_vec.push_back(coordinate_y_vec);
+            ui->customPlot->rescaleAxes();
+            ui->customPlot->replot();
 
-            ui->customPlot->addGraph();
-            ui->customPlot->graph(i)->setName("Data "+QString::number(i+1)+": "+getTruncFileName(file_name));
-            ui->customPlot->graph(i)->setData(coordinate_x_vec,coordinate_y_vec);
-        }
-        ui->customPlot->rescaleAxes();
-        ui->customPlot->replot();
+            *(this->selected_dataset_key_domains_vec)=dataset_key_domains_vec;
+            *(this->selected_dataset_value_domains_vec)=dataset_values_domains_vec;
 
-        *(this->selected_dataset_key_domains_vec)=dataset_key_domains_vec;
-        *(this->selected_dataset_value_domains_vec)=dataset_values_domains_vec;
-
-        //let the user write the function for datasets and plot the new one
-        if(this->selected_datasets_list->size()>1){
-            addGraphFromFunction(dataset_key_domains_vec,dataset_values_domains_vec); //includes replot();
+            //let the user write the function for datasets and plot the new one
+            if(this->selected_datasets_list->size()>1){
+                addGraphFromFunction(dataset_key_domains_vec,dataset_values_domains_vec); //includes replot();
+            }
         }
     }
 }
@@ -425,6 +429,8 @@ void DataProcessApp::on_actionClean_the_Screen_triggered()
 {
     this->selectDialog->clearSelection();
     this->selected_datasets_list->clear();
+    this->selected_dataset_key_domains_vec->clear();
+    this->selected_dataset_value_domains_vec->clear();
     ui->customPlot->clearGraphs();
     ui->customPlot->replot();
 }
